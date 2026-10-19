@@ -1,0 +1,34 @@
+# Datos: el .duckdb NO se entrega (el calificador lo reconstruye)
+data/*
+!data/.gitkeep
+*.duckdb
+*.duckdb.wal
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Modelos y artefactos intermedios (se regeneran con los notebooks)
+models/*
+!models/.gitkeep
+
+# Sistema / editores
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Credenciales
+kaggle.json
+.env
+
+# Figuras: se regeneran al ejecutar los notebooks
+reports/figures/*
+!reports/figures/.gitkeep

@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Limpia las salidas de los notebooks al hacer commit (requiere `uv run nbstripout --install`)
+*.ipynb filter=nbstripout
