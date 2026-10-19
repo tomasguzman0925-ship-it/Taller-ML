@@ -15,7 +15,7 @@ Taller grupal sobre el *Brazilian E-Commerce Public Dataset by Olist*, con todos
 
 ---
 
-## 1. Puesta en marcha (una sola vez por integrante)
+## 1. Puesta en marcha 
 
 ### 1.1 Instalar uv
 
@@ -126,14 +126,14 @@ serie = consulta(con, "B_series/serie_diaria.sql", [FECHA_INICIO_UTIL, FECHA_FIN
 
 ## 4. Qué pide cada módulo (checklist)
 
-### Módulo 0: Datos, calidad y EDA (15 %)
+### Módulo 0: Datos, calidad y EDA 
 - [ ] Unicidad de llaves y cardinalidad de relaciones (1:1, 1:N); qué uniones multiplican filas y cómo evitarlo.
 - [ ] Calidad: faltantes, fechas inconsistentes, órdenes sin ítems, pagos ≠ precio + flete, prefijos sin geolocalización, categorías sin traducción.
 - [ ] `customer_id` vs `customer_unique_id` y sus consecuencias.
 - [ ] Cobertura temporal: definir y justificar el **período útil** → actualizar `src/olist/config.py`.
 - [ ] EDA: tiempos de entrega y retraso, órdenes por día/semana, geografía de clientes y vendedores, compras por cliente.
 
-### Módulo B: Series de tiempo (15 %)
+### Módulo B: Series de tiempo 
 - [ ] Serie diaria en SQL **incluyendo días sin órdenes** (`sql/B_series/serie_diaria.sql`).
 - [ ] Prueba = últimas 8 semanas del período útil; validación walk-forward (horizonte 28 días).
 - [ ] Análisis: tendencia, estacionalidad semanal, ACF/PACF, ADF/KPSS, descomposición, atípicos (Black Friday 2017, festivos, paros): modelar, marcar o excluir.
@@ -166,5 +166,4 @@ serie = consulta(con, "B_series/serie_diaria.sql", [FECHA_INICIO_UTIL, FECHA_FIN
 
 - Informe PDF (≤ 20 páginas): resumen ejecutivo, datos y calidad, capítulo por módulo, interpretabilidad/integración/caso de uso, limitaciones.
 - Notebooks (`.ipynb`) + consultas `.sql`.
-- **No** entregar `olist.duckdb`.
-- Fecha: sábado 17 de octubre de 2026, 11:59 p. m., vía Interactiva.
+
