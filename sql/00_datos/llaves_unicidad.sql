@@ -15,6 +15,9 @@ SELECT 'order_reviews', 'review_id', COUNT(*), COUNT(DISTINCT review_id) FROM or
 UNION ALL
 SELECT 'order_reviews', 'order_id', COUNT(*), COUNT(DISTINCT order_id) FROM order_reviews
 UNION ALL
+SELECT 'order_reviews', 'review_id + order_id', COUNT(*),
+       COUNT(DISTINCT (review_id, order_id)) FROM order_reviews
+UNION ALL
 SELECT 'products', 'product_id', COUNT(*), COUNT(DISTINCT product_id) FROM products
 UNION ALL
 SELECT 'sellers', 'seller_id', COUNT(*), COUNT(DISTINCT seller_id) FROM sellers
