@@ -40,13 +40,15 @@ def walk_forward(
     y: pd.Series,
     n_pliegues: int = 6,
     horizonte: int = HORIZONTE,
-    paso: int = 7,
+    paso: int = HORIZONTE,
     min_entrenamiento: int = 180,
 ) -> Iterator[Pliegue]:
     """Validación con origen móvil (ventana expansiva) sobre ``y`` (sin la prueba).
 
-    Los orígenes se ubican hacia el final de la serie, separados ``paso`` días, y cada
-    pliegue evalúa los ``horizonte`` días siguientes al origen.
+    Los orígenes se ubican hacia el final de la serie, separados ``paso`` días. Por
+    defecto, ``paso == horizonte`` para que las ventanas de validación no se solapen.
+    Se puede usar un paso menor si se desea evaluación de origen frecuente, teniendo
+    presente que esos resultados comparten días objetivo entre pliegues.
     """
     n = len(y)
     ultimo_inicio_val = n - horizonte
@@ -154,17 +156,81 @@ PARAMETROS_LGBM = {
 
 
 def entrenar_lightgbm(y: pd.Series, random_state: int = 42, **params):
-    """Entrena el LightGBM base sobre la matriz de rezagos + calendario de ``y``.
-
-    Es el modelo que comparten el Módulo B (pronóstico) y el Módulo D (SHAP).
-    TODO (Módulo B): ajustar hiperparámetros con walk-forward u Optuna.
-    """
+    """Entrena un LightGBM de un paso sobre rezagos y calendario de ``y``."""
     from lightgbm import LGBMRegressor
 
     X, objetivo = matriz_supervisada(y)
     modelo = LGBMRegressor(**{**PARAMETROS_LGBM, **params}, random_state=random_state)
     modelo.fit(X, objetivo)
     return modelo
+
+
+def matriz_supervisada_directa(
+    y: pd.Series, horizonte: int = HORIZONTE
+) -> tuple[pd.DataFrame, pd.Series]:
+    """Crea ejemplos directos (origen, horizonte) sin usar observaciones futuras.
+
+    Cada fila usa rezagos disponibles en el origen, el calendario de la fecha objetivo
+    y el número de pasos adelante. Los objetivos de entrenamiento siempre pertenecen a
+    ``y``; en validación, ``y`` debe terminar en la fecha de origen del pliegue.
+    """
+    rezagos = variables_rezagos(y)
+    calendario = variables_calendario(y.index)
+    columnas_rezago = rezagos.columns
+    filas: list[dict[str, float | int]] = []
+    objetivos: list[float] = []
+    max_rezago = max(28, 1)
+
+    for indice_origen in range(max_rezago, len(y) - 1):
+        origen = rezagos.iloc[indice_origen]
+        if origen.isna().any():
+            continue
+        max_horizonte = min(horizonte, len(y) - indice_origen - 1)
+        origen_valores = origen.to_dict()
+        for paso in range(1, max_horizonte + 1):
+            indice_objetivo = indice_origen + paso
+            fila = {columna: float(origen_valores[columna]) for columna in columnas_rezago}
+            fila.update(calendario.iloc[indice_objetivo].to_dict())
+            fila["horizonte"] = paso
+            filas.append(fila)
+            objetivos.append(float(y.iloc[indice_objetivo]))
+
+    X = pd.DataFrame(filas)
+    objetivo = pd.Series(objetivos, name=y.name)
+    return X, objetivo
+
+
+def entrenar_lightgbm_directo(
+    y: pd.Series, random_state: int = 42, **params
+):
+    """Entrena un LightGBM directo agrupado para los horizontes 1..``HORIZONTE``."""
+    from lightgbm import LGBMRegressor
+
+    X, objetivo = matriz_supervisada_directa(y)
+    modelo = LGBMRegressor(**{**PARAMETROS_LGBM, **params}, random_state=random_state)
+    modelo.fit(X, objetivo)
+    return modelo
+
+
+def pronostico_directo(
+    modelo,
+    historia: pd.Series,
+    horizonte: int = HORIZONTE,
+) -> pd.Series:
+    """Predice todos los pasos desde un único origen, sin realimentar predicciones."""
+    rezagos = variables_rezagos(historia)
+    origen = rezagos.iloc[-1]
+    fechas = _fechas_futuras(historia, horizonte)
+    calendario = variables_calendario(fechas)
+    filas: list[dict[str, float | int]] = []
+    for paso, fecha in enumerate(fechas, start=1):
+        fila = {columna: float(origen[columna]) for columna in rezagos.columns}
+        fila.update(calendario.loc[fecha].to_dict())
+        fila["horizonte"] = paso
+        filas.append(fila)
+    X_futuro = pd.DataFrame(filas)
+    prediccion = modelo.predict(X_futuro)
+    return pd.Series(prediccion, index=fechas, name="directo")
 
 
 def pronostico_recursivo(

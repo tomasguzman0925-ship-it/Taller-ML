@@ -1,5 +1,7 @@
 """Pruebas rápidas de las utilidades de series (no requieren la base de datos)."""
 
+from itertools import pairwise
+
 import numpy as np
 import pandas as pd
 
@@ -21,9 +23,12 @@ def test_rezagos_sin_fuga():
 
 def test_walk_forward_no_solapa_validacion_con_entrenamiento():
     y = _serie()
-    for p in ts.walk_forward(y, n_pliegues=4, horizonte=28):
+    pliegues = list(ts.walk_forward(y, n_pliegues=4, horizonte=28))
+    for p in pliegues:
         assert p.entrenamiento.index.max() < p.validacion.index.min()
         assert len(p.validacion) == 28
+    for anterior, siguiente in pairwise(pliegues):
+        assert anterior.validacion.index.max() < siguiente.validacion.index.min()
 
 
 def test_ingenuo_estacional_repite_ultima_semana():
@@ -34,3 +39,13 @@ def test_ingenuo_estacional_repite_ultima_semana():
 
 def test_black_friday_2017():
     assert ts.black_friday(2017) == pd.Timestamp("2017-11-24")
+
+
+def test_matriz_directa_usa_rezagos_del_origen_y_calendario_del_objetivo():
+    y = _serie()
+    X, objetivo = ts.matriz_supervisada_directa(y, horizonte=3)
+    assert len(X) == len(objetivo)
+    assert {"lag_1", "media_7", "dia_semana", "horizonte"} <= set(X.columns)
+    assert X["horizonte"].between(1, 3).all()
+    assert np.isclose(X.iloc[0]["lag_1"], y.iloc[27])
+    assert np.isclose(objetivo.iloc[0], y.iloc[29])
