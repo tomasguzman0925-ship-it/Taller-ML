@@ -18,13 +18,11 @@ MODELS_DIR = PROJECT_ROOT / "models"
 RANDOM_STATE = 42
 
 # --- Período útil (Módulo 0) -----------------------------------------------------
-# TODO (Módulo 0): justificar estas fechas con el análisis de cobertura temporal
-# (sql/00_datos/cobertura_mensual.sql). Son valores provisionales:
-# - antes del 2017-01-05 casi no hay órdenes (2016 es escaso y 2017-01-01..04 tienen 0);
-# - desde el 2018-08-22 las órdenes caen en picada (de ~250 a 4 diarias) por el corte
-#   de extracción del dataset, no por la demanda real.
+# Incluye los días desde el primer bloque sostenido de órdenes. Se excluye el tramo
+# posterior al 2018-08-21: la cobertura cae desde el día 22 y es casi nula al final
+# de agosto, señal de extracción incompleta y no de demanda representativa.
 FECHA_INICIO_UTIL = "2017-01-05"
-FECHA_FIN_UTIL = "2018-08-20"  # exclusiva: se usan compras con fecha < FECHA_FIN_UTIL
+FECHA_FIN_UTIL = "2018-08-22"  # exclusiva: incluye compras hasta el 2018-08-21
 
 # --- Series de tiempo (Módulo B) -------------------------------------------------
 HORIZONTE = 28  # días a pronosticar (4 semanas)

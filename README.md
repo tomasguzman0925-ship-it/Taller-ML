@@ -45,7 +45,9 @@ Alternativa sin uv: `python -m venv .venv`, activarlo, y `pip install -r require
 
 `00_datos` → `B_series` → `D_integracion`. B guarda el modelo en `models/lightgbm_series.joblib`, que
 D carga. Si no existe, D lo entrena con la misma función. Las fechas del período útil viven en
-`src/olist/config.py` (valores provisionales: 2017-01-05 a 2018-08-19). El Módulo 0 debe justificarlas.
+`src/olist/config.py` (`[2017-01-05, 2018-08-22)`, elegido con la evidencia de cobertura del Módulo 0).
+La serie diaria cuenta todos los estados por fecha de compra: representa pedidos recibidos, no solo
+entregas completadas.
 
 ### 1.3 Construir la base de datos
 
@@ -166,4 +168,3 @@ serie = consulta(con, "B_series/serie_diaria.sql", [FECHA_INICIO_UTIL, FECHA_FIN
 
 - Informe PDF (≤ 20 páginas): resumen ejecutivo, datos y calidad, capítulo por módulo, interpretabilidad/integración/caso de uso, limitaciones.
 - Notebooks (`.ipynb`) + consultas `.sql`.
-
