@@ -173,12 +173,16 @@ def matriz_supervisada_directa(
     Cada fila usa rezagos disponibles en el origen, el calendario de la fecha objetivo
     y el número de pasos adelante. Los objetivos de entrenamiento siempre pertenecen a
     ``y``; en validación, ``y`` debe terminar en la fecha de origen del pliegue.
+
+    El índice de las filas es (``origen``, ``fecha_objetivo``): sirve para ubicar cada
+    pronóstico en el tiempo (por ejemplo, en el Módulo D) y no lo usa el modelo.
     """
     rezagos = variables_rezagos(y)
     calendario = variables_calendario(y.index)
     columnas_rezago = rezagos.columns
     filas: list[dict[str, float | int]] = []
     objetivos: list[float] = []
+    indice: list[tuple[pd.Timestamp, pd.Timestamp]] = []
     max_rezago = max(28, 1)
 
     for indice_origen in range(max_rezago, len(y) - 1):
@@ -194,9 +198,11 @@ def matriz_supervisada_directa(
             fila["horizonte"] = paso
             filas.append(fila)
             objetivos.append(float(y.iloc[indice_objetivo]))
+            indice.append((y.index[indice_origen], y.index[indice_objetivo]))
 
-    X = pd.DataFrame(filas)
-    objetivo = pd.Series(objetivos, name=y.name)
+    indice_filas = pd.MultiIndex.from_tuples(indice, names=["origen", "fecha_objetivo"])
+    X = pd.DataFrame(filas, index=indice_filas)
+    objetivo = pd.Series(objetivos, index=indice_filas, name=y.name)
     return X, objetivo
 
 
