@@ -44,7 +44,8 @@ Alternativa sin uv: `python -m venv .venv`, activarlo, y `pip install -r require
 ### 1.5 Orden de ejecución
 
 `00_datos` → `B_series` → `D_integracion`. B guarda el modelo en `models/lightgbm_series.joblib`, que
-D carga. Si no existe, D lo entrena con la misma función. Las fechas del período útil viven en
+D carga: **ejecuten B antes que D** (D se detiene con un aviso si el modelo no existe o no corresponde al
+período útil actual). Las fechas del período útil viven en
 `src/olist/config.py` (`[2017-01-05, 2018-08-22)`, elegido con la evidencia de cobertura del Módulo 0).
 La serie diaria cuenta todos los estados por fecha de compra: representa pedidos recibidos, no solo
 entregas completadas.
@@ -146,12 +147,10 @@ serie = consulta(con, "B_series/serie_diaria.sql", [FECHA_INICIO_UTIL, FECHA_FIN
 - [ ] *(Opcional)* top-5 categorías o estado de São Paulo.
 
 ### Módulo D adaptado a series de tiempo
-- [ ] **SHAP sobre el LightGBM del Módulo B:** importancia global (beeswarm), dependencia de las 3 variables más relevantes, explicación local de **un día bien pronosticado** y de **un día con gran error** (el análogo del falso negativo, p. ej. Black Friday o un festivo). Contraste con importancia por permutación.
-- [ ] **Integración** con el Módulo 0 / B (al menos una):
-  - (i) Plan de capacidad: convertir el pronóstico diario en carga semanal por estado de origen de los vendedores (participaciones históricas en SQL).
-  - (ii) Demanda por estado o categoría: ¿el modelo global sirve para SP o para las top-5 categorías?
-  - (iii) ¿Mejora el pronóstico al agregar variables de los datos (precio medio, flete, mezcla de categorías rezagados)?
-- [ ] **Caso de uso:** cómo se operaría (plan semanal de capacidad, alertas de picos) y limitaciones: deriva temporal, censura al cierre del dataset, sesgos de cobertura geográfica.
+- [x] **SHAP sobre el LightGBM del Módulo B:** importancia global (beeswarm), por familia de variables y horizonte, dependencia de las 3 variables más relevantes, explicación local del pronóstico más acertado y del de mayor error (el análogo del falso negativo). Contraste con la importancia por permutación.
+- [x] **Integración (i), plan de capacidad:** el pronóstico de órdenes de B se convierte en despachos semanales por estado de origen de los vendedores (despachos por orden calculados en SQL) y se valida contra los despachos reales.
+  - Opcionales no hechas: (ii) ¿el modelo global sirve para SP o para las top-5 categorías?; (iii) ¿mejora el pronóstico al agregar variables de los datos?
+- [x] **Caso de uso y limitaciones:** plan semanal con techo del 90 % y re-pronóstico ante desvíos; deriva temporal, poco historial para la estacionalidad anual, corte de extracción y sesgo geográfico.
 
 > Confirmen con el profesor que esta adaptación del Módulo D es válida.
 
