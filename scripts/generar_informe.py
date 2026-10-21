@@ -31,7 +31,12 @@ from olist.config import FIG_DIR, PROJECT_ROOT
 # ---------------------------------------------------------------------------------
 # Datos de portada (completar)
 # ---------------------------------------------------------------------------------
-INTEGRANTES = "[Nombres de los integrantes]"
+INTEGRANTES = [
+    "Luis Alberto Ortiz Quiroga",
+    "Esteban Salazar Ramirez",
+    "Alejandro Jimenez Lopera",
+    "Tomás Guzmán Tapias",
+]
 FECHA = "Octubre de 2026"
 
 SALIDA = PROJECT_ROOT / "reports" / "informe" / "Informe_Taller_Olist.pdf"
@@ -148,7 +153,9 @@ h: list = []
 h += [
     Paragraph("Olist: demanda diaria, interpretabilidad e integración", E["titulo"]),
     Paragraph("Taller de Aprendizaje Automático · MCDA 2026-2 · Profesor Andrés Vásquez Restrepo", E["subtitulo"]),
-    Paragraph(f"{INTEGRANTES} · {FECHA}", E["subtitulo"]),
+    Paragraph("<br/>".join(" · ".join(INTEGRANTES[i:i + 2]) for i in range(0, len(INTEGRANTES), 2)),
+              E["subtitulo"]),
+    Paragraph(FECHA, E["subtitulo"]),
     Spacer(1, 6),
 ]
 
@@ -474,7 +481,7 @@ def main() -> None:
     doc = SimpleDocTemplate(str(SALIDA), pagesize=letter, leftMargin=2 * cm, rightMargin=2 * cm,
                             topMargin=1.7 * cm, bottomMargin=1.8 * cm,
                             title="Olist: demanda diaria, interpretabilidad e integración",
-                            author=INTEGRANTES, subject="Taller de Aprendizaje Automático 2026-2")
+                            author=", ".join(INTEGRANTES), subject="Taller de Aprendizaje Automático 2026-2")
     doc.build(h, onFirstPage=pie_pagina, onLaterPages=pie_pagina)
     print("Informe generado:", SALIDA.relative_to(PROJECT_ROOT))
 
